@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div v-if="linkData" class="link-details">
+      <button class="close-ribbon" @click="closeModal">X</button>
       <h2>Detalhes do Link</h2>
       <p><strong>ID:</strong> {{ linkData.link.id }}</p>
       <p><strong>Link Original:</strong> {{ linkData.link.original_link }}</p>
@@ -20,7 +21,7 @@
         </li>
       </ul>
 
-      <button @click="closeModal">Fechar</button>
+      <!-- <button class="close-ribbon" @click="closeModal">Fechar</button> -->
     </div>
   </div>
 </template>
@@ -42,18 +43,29 @@ export default {
 </script>
 
 <style scoped>
+.close-ribbon {
+  margin: -4.5rem 0 0 28rem;
+  position: absolute;
+  cursor: pointer;
+}
+
 .container {
   display: flex;
   justify-content: center;
-  margin-top: -100%;
-  z-index: -1;
+  margin-top: -35rem;
+  max-height: 545px;
+  z-index: 1;
+}
+
+.link-details::-webkit-scrollbar {
+  display: none;
 }
 
 .link-details {
   padding: 4rem;
   border-radius: 10px;
-  max-width: 30rem;
-  height: 10%;
+  max-width: 25rem;
+  overflow: auto;
   opacity: 0.9;
   background-color: rgb(187, 187, 187);
   color: black;

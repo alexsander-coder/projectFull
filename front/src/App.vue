@@ -6,31 +6,28 @@
         :class="{ 'rounded-input': true, 'focused': input1Focused }" @focus="input1Focused = true"
         @blur="input1Focused = false" />
     </div>
-
-    <div class="input-group">
+    <div class="input-group" style="margin: 0 -14.8rem 0 -14.8rem;">
       <label for="input2">Identificador da URL</label>
       <input id="input2" v-model="input2" placeholder="Nome para identificar a URL"
         :class="{ 'rounded-input': true, 'focused': input2Focused }" @focus="input2Focused = true"
         @blur="input2Focused = false" />
     </div>
-
     <div class="input-group">
-      <label for="input3">SLUG</label>
+      <label for="input3">Slug</label>
       <input id="input3" style="max-width: 4rem;" v-model="input3" placeholder="SLUG"
         :class="{ 'rounded-input': true, 'focused': input3Focused }" @focus="input3Focused = true"
-        @blur="input3Focused = false" />
+        @blur="input3Focused = false" :disabled="editingLink !== null" />
     </div>
-
-    <button @click="handleButtonClick">{{ editingLink ? 'Editar' : 'Encurtar' }}</button>
+    <button style="margin: 2% 0 0 -22%;" @click="handleButtonClick">{{ editingLink ? 'Editar' : 'Encurtar' }}</button>
   </div>
-
   <div style="text-align: center;">
     <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
     <p v-if="deleteSuccessMessage" class="success-message-delete">{{ deleteSuccessMessage }}</p>
   </div>
   <div style="text-align: center; margin-top: 4%; color: black;">Insira seu dominio</div>
   <div class="domain">
-    <input v-model="domain" placeholder="Domínio" :class="{ 'rounded-input': true, 'focused': input2Focused }" />
+    <input v-model="domain" placeholder="Domínio" :class="{ 'rounded-input': true, 'focused': input4Focused }"
+      @focus="input4Focused = true" @blur="input4Focused = false" />
   </div>
   <h2 style="text-align: center; margin-top: 5%; color: rgb(81, 81, 81);">LINKS CRIADOS</h2>
   <div class="links-list">
@@ -59,42 +56,27 @@
         </div>
       </div>
     </div>
-  </div>
-
+  </div><br><br><br><br><br><br>
   <LinkModal v-if="selectedLink" :linkData="selectedLink" @close="selectedLink = null" />
-  <!-- <div v-if="selectedLink" class="link-details">
-    <h2>Detalhes do Link</h2>
-    <p><strong>ID:</strong> {{ selectedLink.link.id }}</p>
-    <p><strong>Link Original:</strong> {{ selectedLink.link.original_link }}</p>
-    <p><strong>Short Link:</strong> {{ selectedLink.link.short_link }}</p>
-    <p><strong>Clicks:</strong> {{ selectedLink.link.clicks }}</p>
-    <p><strong>Nome Fictício:</strong> {{ selectedLink.link.nome_ficticio }}</p>
-    <p><strong>Criado em:</strong> {{ selectedLink.link.created_at }}</p>
-    <p><strong>Atualizado em:</strong> {{ selectedLink.link.updated_at }}</p>
-    <h3>Acessos</h3>
-    <ul>
-      <li v-for="access in selectedLink.accesses" :key="access.id">
-        <strong>ID:</strong> {{ access.id }}<br>
-        <strong>IP:</strong> {{ access.ip }}<br>
-        <strong>User Agent:</strong> {{ access.user_agent }}<br>
-        <strong>Criado em:</strong> {{ access.created_at }}<br>
-        <strong>Atualizado em:</strong> {{ access.updated_at }}
-      </li>
-    </ul>
-  </div> -->
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import LinkModal from './components/LinkModal.vue';
 
+const API_ENDPOINT = 'http://localhost:8000/api/links/';
+
+
 const input1 = ref('');
 const input2 = ref('');
 const input3 = ref('');
 
+
 const input1Focused = ref(false);
 const input2Focused = ref(false);
 const input3Focused = ref(false);
+const input4Focused = ref(false);
+
 
 const domain = ref('');
 const successMessage = ref('');
@@ -120,7 +102,7 @@ const handleButtonClick = async () => {
     if (editingLink.value) {
       console.log(editingLink.value.id, 'o qe vem no iD')
       // Se estiver editando, faça uma requisição PUT para o endpoint de edição
-      response = await fetch(`http://localhost:8000/api/links/${editingLink.value.id}`, {
+      response = await fetch(`${API_ENDPOINT}${editingLink.value.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -129,7 +111,7 @@ const handleButtonClick = async () => {
       });
     } else {
       // Caso contrário, faça uma requisição POST para o endpoint de criação
-      response = await fetch('http://localhost:8000/api/links/store', {
+      response = await fetch(`${API_ENDPOINT}store`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -156,7 +138,7 @@ const handleButtonClick = async () => {
 
 const editLink = (link) => {
   input1.value = link.original_link;
-  // input2.value = link.nome_ficticio;
+  input2.value = link.nome_ficticio;
   input3.value = link.short_link;
   editingLink.value = link;
 };
@@ -168,8 +150,6 @@ const fetchLinks = async () => {
     if (response.ok) {
       const responseData = await response.json();
       links.value = responseData.data;
-
-      console.log(responseData.data, 'eae fih de deusi')
     } else {
       console.error('Erro ao buscar links');
     }
@@ -180,7 +160,7 @@ const fetchLinks = async () => {
 
 const deleteLink = async (linkId) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/links/${linkId}`, {
+    const response = await fetch(`${API_ENDPOINT}${linkId}`, {
       method: 'DELETE'
     });
 
@@ -200,10 +180,11 @@ const deleteLink = async (linkId) => {
 
 const viewLink = async (link) => {
   try {
-    const response = await fetch(`http://localhost:8000/api/links/${link}`);
+    const response = await fetch(`${API_ENDPOINT}${link}`);
     if (response.ok) {
       const responseData = await response.json();
       selectedLink.value = responseData;
+
     } else {
       console.error('Erro ao buscar detalhes do link');
     }
@@ -215,7 +196,6 @@ const viewLink = async (link) => {
 const copyUrl = async (url) => {
   try {
     await navigator.clipboard.writeText(url);
-    // corrigir uma exibicao de msg
   } catch (error) {
     console.error('Erro ao copiar URL:', error);
   }
@@ -231,12 +211,21 @@ const clearInputs = () => {
 
 
 <style scoped>
+input.rounded-input:focus {
+  outline: none;
+}
+
+input.rounded-input.focused {
+  border: 1px solid #007BFF;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
 .header {
   display: flex;
-  /* flex-direction: column; */
   justify-content: space-evenly;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .input-group {
@@ -300,6 +289,12 @@ const clearInputs = () => {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+  max-height: 30rem;
+  overflow: auto;
+}
+
+.links-list::-webkit-scrollbar {
+  display: none;
 }
 
 .linksEdit {
@@ -318,5 +313,21 @@ const clearInputs = () => {
 
 .success-message-delete {
   color: red;
+}
+
+
+@media (max-width: 973px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .input-group {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .header button {
+    margin: 0;
+  }
 }
 </style>
